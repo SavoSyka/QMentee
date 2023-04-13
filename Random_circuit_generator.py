@@ -106,7 +106,7 @@ for i in range(deep):
             continue
         gate = choice(all_3gates)
         listt = [j for j in range(count_qbits)]
-        random.shuffle(listt)
+        shuffle(listt)
         qbit1, qbit2, qbit3 = listt[0], listt[1], listt[2]
         if gate == "CCX":
             circuit.ccx(qbit1, qbit2, qbit3)
