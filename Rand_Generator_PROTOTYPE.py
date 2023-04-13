@@ -41,7 +41,7 @@ for i in range (0, amount_of_blocks):
     if am_of_gates == 2:
         qub1 = randint(0,amount_of_qubits-1)
         qub2 = randint(0,amount_of_qubits-1)
-        while (qub2 == qub1):
+        while qub2 == qub1:
             qub2 = randint(0,amount_of_qubits-1)
         qub_type = randint(0,3)
         #print (qub1, qub2)
@@ -56,10 +56,10 @@ for i in range (0, amount_of_blocks):
     if am_of_gates == 3:
         qub1 = randint(0,amount_of_qubits-1)
         qub2 = randint(0,amount_of_qubits-1)
-        while (qub2 == qub1):
+        while qub2 == qub1:
             qub2 = randint(0,amount_of_qubits-1)
         qub3 = randint(0,amount_of_qubits-1)
-        while ((qub3 == qub1) or (qub3 == qub2)):
+        while (qub3 == qub1) or (qub3 == qub2):
             qub3 = randint(0,amount_of_qubits-1)
         qub_type = randint(0,1)
         if qub_type == 0:
