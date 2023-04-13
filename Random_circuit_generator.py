@@ -1,72 +1,117 @@
-from qiskit import QuantumCircuit, assemble, Aer
-#from qiskit_aer import AerSimulator
-#from qiskit.visualization import plot_histogram, plot_bloch_vector
-#from math import sqrt, pi
+import qasm
+import numpy as np
+import pylatexenc
+import matplotlib
+from random import randint, shuffle, choice
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
-from random import randint
 
-amount_of_qubits = randint(1, 10)
-amount_of_blocks = randint(5, 10)
 
-qc = QuantumCircuit(amount_of_qubits)
-for i in range (0, amount_of_blocks):
-  am_of_gates = 0
-  qub = 0
-  qub_type = 0
-  qub1 = 0
-  qub2 = 0
-  qub3 = 0
-  am_of_gates = randint(1, 3)
-  if am_of_gates == 1:
-    qub = randint(0,amount_of_qubits-1)
-    qub_type  = randint(0,8)
-    if qub_type == 0:
-      qc.id(qub)
-    if qub_type == 1:
-      qc.h(qub)
-    if qub_type == 2:
-      qc.x(qub)
-    if qub_type == 3:
-      qc.y(qub)
-    if qub_type == 4:
-      qc.z(qub)
-    if qub_type == 5:
-      qc.s(qub)
-    if qub_type == 6:
-      qc.sdg(qub)
-    if qub_type == 7:
-      qc.t(qub)
-    if qub_type == 8:
-      qc.tdg(qub)
-  if am_of_gates == 2:
-    qub1 = randint(0,amount_of_qubits-1)
-    qub2 = randint(0,amount_of_qubits-1)
-    while (qub2 == qub1):
-      qub2 = randint(0,amount_of_qubits-1)
-    qub_type = randint(0,3)
-    #print (qub1, qub2)
-    if qub_type == 0:
-      qc.cx(qub1, qub2)
-    if qub_type == 1:
-      qc.cz(qub1, qub2)
-    if qub_type == 2:
-      qc.swap(qub1, qub2)
-    if qub_type == 3:
-      qc.iswap(qub1, qub2)
-  if am_of_gates == 3:
-    qub1 = randint(0,amount_of_qubits-1)
-    qub2 = randint(0,amount_of_qubits-1)
-    while (qub2 == qub1):
-      qub2 = randint(0,amount_of_qubits-1)
-    qub3 = randint(0,amount_of_qubits-1)
-    while ((qub3 == qub1) or (qub3 == qub2)):
-      qub3 = randint(0,amount_of_qubits-1)
-    qub_type = randint(0,1)
-    if qub_type == 0:
-      qc.ccx(qub1,qub2,qub3)
-    if qub_type == 1:
-      qc.ccz(qub1,qub2,qub3)
-f = open('rand_circuit.qasm', 'w')
-f.write(qc.qasm())
-print(qc.qasm())
-print(qc)
+
+#считываем json - а как?о\
+# файл с информацией о квантовом процессоре, на котором будет
+# запускаться заданная квантовая логическая цепочка [подается с ключом
+# -q или --qprocessor, по умолчанию используется файл
+# qprocessor_info.json]Поддерживаемые гейты- H,X,Z,T,S,Y,CX,CZ,SWAP,ISWAP, CCX,CCZ. Кроме того,
+# возможно добавление многокубитных гейтов контролируемой унитарной
+# операции: ControlledGate(<U>, 3)( qb[<L0>], qb[ <L1>], … , qb[<LM>])
+"""
+"single_ion_gate_fidelity": 0.998,
+"two_ion_gate_fidelity": 0.975,
+"ions_num": 5,
+"levels_num": 8,
+"2_lvl_measurement_fid": 0.9
+"4_lvl_measurement_fid": 0.85
+"8_lvl_measurement_fid": 0.8
+"desired_gates:"  <------------- нужно ли?
+"supported_gates:"
+"""
+# создание json, так удобнее, в целом, код не нужен
+import json
+data = {
+"single_ion_gate_fidelity": 0.998,
+"two_ion_gate_fidelity": 0.975,
+"ions_num": 5,
+"levels_num": 8,
+"2_lvl_measurement_fid": 0.9,
+"4_lvl_measurement_fid": 0.85,
+"8_lvl_measurement_fid": 0.8,
+"desired_gates": ["H","X","Z","T","S","Y","CX","CZ","SWAP","ISWAP", "CCX","CCZ"],
+"supported_gates": ["H","X","Z","T","S","Y","CX","CZ","SWAP","ISWAP", "CCX","CCZ"]
+}
+with open("qprocessor_info.json", "w") as write_file:
+    json.dump(data, write_file)
+    write_file.close()
+
+#открытие  json
+
+info_dict = {}
+with open("qprocessor_info.json", "r") as write_file:
+    info_dict = json.load(write_file)
+    write_file.close()
+#print(info_dict)
+
+
+count_qbits = int(info_dict["ions_num"])
+count_bits = int(info_dict["ions_num"])
+deep = int(info_dict["levels_num"])
+all_1gates = ["H","X","Z","T","S","Y","Tdg"]
+all_2gates = ["CX","CZ","SWAP","ISWAP"]
+all_3gates = ["CCX","CCZ"]
+
+circuit = QuantumCircuit(count_qbits, count_bits)
+
+for i in range(deep):
+    block = randint(0,5)
+    if block == 0:
+        q = randint(0, count_qbits - 1)
+        s = randint(0, count_bits - 1)
+        circuit.measure(q, s)
+    elif  block == 1 or block == 2:
+        gate = choice(all_1gates)
+        qbit = randint(0, count_qbits - 1)
+        if gate == "H":
+            circuit.h(qbit)
+        elif gate == "X":
+            circuit.x(qbit)
+        elif gate == "Z":
+            circuit.z(qbit)
+        elif gate == "T":
+            circuit.t(qbit)
+        elif gate == "S":
+            circuit.s(qbit)
+        elif gate == "Y":
+            circuit.y(qbit)
+        elif gate == "Tdg":
+            circuit.tdg(qbit)
+    elif block == 3 or block == 4:
+        if count_qbits <2:
+            deep += 1
+            continue
+        gate = choice(all_2gates)
+        listt = [ j for j in range(count_qbits)]
+        shuffle(listt)
+        qbit1, qbit2  = listt[0], listt[1]
+        if gate == "CX":
+            circuit.cx(qbit1,qbit2)
+        elif gate == "CY":
+            circuit.cy(qbit1,qbit2)
+        elif gate == "CZ":
+            circuit.cz(qbit1,qbit2)
+        elif gate == "CH":
+            circuit.ch(qbit1,qbit2)
+    else:
+        if count_qbits <3:
+            deep += 1
+            continue
+        gate = choice(all_3gates)
+        listt = [j for j in range(count_qbits)]
+        random.shuffle(listt)
+        qbit1, qbit2, qbit3 = listt[0], listt[1], listt[2]
+        if gate == "CCX":
+            circuit.ccx(qbit1, qbit2, qbit3)
+        elif gate == "CCZ":
+            circuit.ccz(qbit1, qbit2, qbit3)
+
+
+circuit.qasm(filename="circuit.qasm")
