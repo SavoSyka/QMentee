@@ -114,4 +114,4 @@ for i in range(deep):
             circuit.ccz(qbit1, qbit2, qbit3)
 
 
-circuit.qasm(filename="circuit.qasm")
+circuit.qasm(filename="random_circuit.qasm")

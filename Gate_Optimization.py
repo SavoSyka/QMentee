@@ -1,18 +1,30 @@
-#f = open('rand_circuit.qasm', 'r')
+# f = open('rand_circuit.qasm', 'r')
 from qiskit import QuantumCircuit, assemble, Aer
-#from qiskit_aer import AerSimulator
-#from qiskit.visualization import plot_histogram, plot_bloch_vector
-#from math import sqrt, pi
+# from qiskit_aer import AerSimulator
+# from qiskit.visualization import plot_histogram, plot_bloch_vector
+# from math import sqrt, pi
 
 from random import randint
-qc = QuantumCircuit.from_qasm_file('rand_circuit.qasm')
+
+qc = QuantumCircuit.from_qasm_file('random_circuit.qasm')
 print(qc)
 print(qc.data, sep='\n')
 print(len(qc.data))
+am_of_classical_regs = 0
+am_of_qubits = 0
+num_qubits = qc.num_qubits
+num_clbits = qc.num_clbits
 
+decomp_circ = QuantumCircuit(num_qubits, num_clbits)
 j = 0
-decomp_circ = QuantumCircuit(len(qc.data))
+
 for i in qc.data:
+    if i[0].name == 'measure':
+        q = qc.data[j].qubits[0].index
+        c = qc.data[j].clbits[0].index
+        print('measure', q, c)
+        decomp_circ.measure(q, c)
+
     if i[0].name == 'z':
         q = qc.data[j].qubits[0].index
         decomp_circ.z(q)
@@ -37,7 +49,6 @@ for i in qc.data:
     if i[0].name == 'sdg':
         q = qc.data[j].qubits[0].index
         decomp_circ.sdg(q)
-
 
     if i[0].name == 'cz':
         q1 = qc.data[j].qubits[0].index
@@ -146,3 +157,4 @@ for i in qc.data:
 print(decomp_circ)
 f = open('decomposed_circuit.qasm', 'w')
 f.write(decomp_circ.qasm())
+print(decomp_circ.qasm())
